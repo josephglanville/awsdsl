@@ -158,6 +158,6 @@ DEPENDENCIES
   awsdsl!
   bundler (~> 1.7)
   gersberms!
-  pry (~> 0.10)
+  pry
   rake (~> 10.0)
   rspec (~> 3.2)

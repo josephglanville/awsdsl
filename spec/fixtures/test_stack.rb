@@ -4,10 +4,11 @@ stack 'logs' do
   zone_arn = 'arn:aws:route53:::hostedzone/zone_id'
   snapshot_bucket_arn = 'arn:aws:s3:::snapshot_bucket'
   cloudtrail_queue_arn = 'arn:aws:sqs:ap-southeast-2:account_id:queue'
+  vpc 'vpc-id'
 
   role_profile 'es_comms' do
     security_group 'ElasticSearchCommsSG'
-    subnets ['testsubnetid']
+    subnets 'subnet-id'
   end
 
   role_profile 'es_bucket' do
@@ -27,7 +28,7 @@ stack 'logs' do
       listener port: 80
       listener port: 443, proto: 'HTTPS', cert: ssl_cert_arn
       listener port: 9000, proto: 'TCP'
-      dns_record 'logstash.zone.com'
+      dns_record name: 'logstash.zone.com', zone: 'zone-id'
       health_check target: 'HTTP:80/health'
     end
     policy_statement effect: 'Allow', action: 'sqs:*', resource: cloudtrail_queue_arn
@@ -44,7 +45,7 @@ stack 'logs' do
     load_balancer 'elasticsearch' do
       listener port: 9200
       health_check target: 'HTTP:9200/'
-      dns_record 'elasticsearch.zone.com'
+      dns_record name: 'elasticsearch.zone.com', zone: 'zone-id'
       security_group 'ElasticSearchCommsSG'
       internal true
     end

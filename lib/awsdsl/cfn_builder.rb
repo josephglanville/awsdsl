@@ -35,7 +35,7 @@ module AWSDSL
               ConnectionSettings lb.connection_settings if lb.connection_settings
               HealthCheck health_check if health_check
               CrossZone true
-              Subnets lb.subnets || role.subnets
+              Subnets resolve_subnets(lb.subnets || role.subnets)
               SecurityGroups [Ref("#{lb_name}ELBSG")]
             end
           end
@@ -44,7 +44,7 @@ module AWSDSL
           t.declare do
             EC2_SecurityGroup "#{lb_name}ELBSG" do
               GroupDescription "#{lb.name.capitalize} ELB Security Group"
-              VpcId role.vpc
+              VpcId resolve_vpc(role.vpc)
               listeners.map { |l| l[:LoadBalancerPort] }.each do |port|
                 SecurityGroupIngress IpProtocol: 'tcp',
                                      FromPort: port,
@@ -57,8 +57,8 @@ module AWSDSL
           # ELB DNS records
           lb.dns_records.each do |record|
             t.declare do
-              RecordSet record do
-                HostedZoneId get_zone_for_record(record).id
+              RecordSet record[:name] do
+                HostedZoneId record[:zone] || get_zone_for_record(record[:name]).id
                 Name record
                 Type 'A'
                 AliasTarget HostedZoneId: FnGetAtt(lb_name, 'CanonicalHostedZoneNameID'),
@@ -112,7 +112,7 @@ module AWSDSL
             MaxSize role.max_size
             DesiredCapacity role.tgt_size
             LoadBalancerNames lb_names.map { |name| Ref(name) }
-            VPCZoneIdentifier role.subnets
+            VPCZoneIdentifier resolve_subnets(role.vpc, role.subnets)
             AvailabiltityZones FnGetAZs('')
           end
         end

@@ -1,5 +1,6 @@
 require 'pry'
 require 'awsdsl'
+require 'awsdsl/cfn_helpers'
 
 ROOT = File.join(File.dirname(__FILE__), '..')
 FIXTURES = File.join(File.dirname(__FILE__), 'fixtures')
@@ -21,3 +22,5 @@ def yaml_fixture(*path)
   last = path.pop
   YAML.parse(fixture(path << last + '.yml'))
 end
+
+AWS.stub!

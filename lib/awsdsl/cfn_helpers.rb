@@ -1,3 +1,5 @@
+require 'aws'
+
 module AWSDSL
   module CfnHelpers
     def listener_defaults(listener)
@@ -43,6 +45,30 @@ module AWSDSL
       zones.find do |z|
         name.split('.').reverse.take(z.name.split('.').count) == z.name.split('.').reverse
       end
+    end
+
+    def get_vpc_by_name(vpc)
+      ec2 = AWS::EC2.new
+      ec2.vpcs.with_tag('Name', vpc).first
+    end
+
+    def resolve_vpc(vpc)
+      return vpc if vpc.start_with('vpc-')
+      get_vpc_by_name(vpc).id
+    end
+
+    def resolve_subnets(vpc, subnets)
+      ec2 = AWS::EC2.new
+      subnets.map do |subnet|
+        resolve_subnet(vpc, subnet)
+      end.flatten
+    end
+
+    def resolve_subnet(vpc, subnet)
+      return [subnet] if subnet.start_with?('subnet-')
+      v = ec2.vpcs[vpc] if vpc.start_with?('vpc-')
+      v ||= get_vpc_by_name(vpc)
+      v.subnets.with_tag('Name', subnet).map(&:id)
     end
   end
 end
