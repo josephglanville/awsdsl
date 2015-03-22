@@ -36,5 +36,13 @@ module AWSDSL
     def format_policy_statement(policy_statement)
       Hash[policy_statement.map { |k, v| [k.to_s.capitalize.to_sym, v] }]
     end
+
+    def get_zone_for_record(name)
+      r53 = AWS::Route53.new
+      zones = r53.hosted_zones.sort_by {|z| z.name.split('.').count }.reverse
+      zones.find do |z|
+        name.split('.').reverse.take(z.name.split('.').count) == z.name.split('.').reverse
+      end
+    end
   end
 end

@@ -58,7 +58,7 @@ module AWSDSL
           lb.dns_records.each do |record|
             t.declare do
               RecordSet record do
-                HostedZoneId record # TODO(jpg) Get the id of the zone.
+                HostedZoneId get_zone_for_record(record).id
                 Name record
                 Type 'A'
                 AliasTarget HostedZoneId: FnGetAtt(lb_name, 'CanonicalHostedZoneNameID'),
