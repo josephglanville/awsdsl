@@ -1,4 +1,5 @@
 require 'gersberms'
+require 'awsdsl/base_ami'
 
 module AWSDSL
   class AMIBuilder
@@ -7,7 +8,7 @@ module AWSDSL
     end
 
     def build
-      @stack.each.map do |role|
+      @stack.roles.each do |role|
         build_ami(role)
       end
     end
@@ -27,6 +28,8 @@ module AWSDSL
           @builder.upload_files
         end
         role.chef_provisioners.each do |provisioner|
+          runlist = provisioner[:runlist]
+          runlist = [runlist] unless runlist.is_a? Array
           @builder.options[:runlist] = provisioner[:runlist]
           @builder.run_chef
         end
@@ -35,7 +38,7 @@ module AWSDSL
       rescue => e
         @builder.destroy_instance
         @builder.destroy_keypair
-        fail "Failed to build AMI for #{role.name}:\nError: #{e.message}\nBacktrace: #{e.backtrace}"
+        fail "Failed to build AMI for #{role.name}:\nError: #{e.message}\nBacktrace: #{e.backtrace.join("\n")}"
       end
     end
 
@@ -59,6 +62,22 @@ module AWSDSL
         base = BaseAMI.find(base)
       end
       base
+    end
+
+    def ami_name(role)
+      last = latest_ami(role)
+      num = last.name.split('-').last.to_i + 1 if last
+      num ||= 1
+      "#{@stack.name}-#{role.name}-#{num}"
+    end
+
+    def latest_ami(role)
+      ec2 = AWS::EC2.new
+      amis = ec2.images.with_owner('self').select do |i|
+        i.name.start_with?("#{@stack.name}-#{role.name}")
+      end
+      latest_num = amis.map {|i| i.name.split('-').last.to_i }.sort.last
+       amis.select {|i| i.name == "#{ami}-#{env}-#{latest_num}"}.first
     end
   end
 end

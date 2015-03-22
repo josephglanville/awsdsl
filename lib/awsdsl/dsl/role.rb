@@ -7,6 +7,7 @@ module AWSDSL
     multi_attributes :policy_statement,
                      :include_profile,
                      :security_group,
+                     :file_provisioner,
                      :chef_provisioner,
                      :ansible_provisioner,
                      :subnet
