@@ -1,6 +1,8 @@
 module AWSDSL
   class Role
     include DSL
+    attr_accessor :ami
+
     sub_components :load_balancer
     multi_attributes :policy_statement,
                      :include_profile,
@@ -14,6 +16,6 @@ module AWSDSL
                :instance_type,
                :vpc,
                :subnets,
-               :ami
+               :base_ami
   end
 end

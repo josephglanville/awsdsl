@@ -9,6 +9,10 @@ module AWSDSL
       @stack = stack
     end
 
+    def self.build(stack)
+      CfnBuilder.new(stack).build
+    end
+
     def build
       t = CfnDsl::CloudFormationTemplate.new
       stack = @stack
