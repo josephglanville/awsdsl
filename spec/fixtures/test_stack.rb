@@ -3,6 +3,7 @@ stack 'logs' do
   ssl_cert_arn = 'arn:aws:iam::account_id::certificate'
   zone_arn = 'arn:aws:route53:::hostedzone/zone_id'
   snapshot_bucket_arn = 'arn:aws:s3:::snapshot_bucket'
+  cloudtrail_queue_arn = 'arn:aws:sqs:ap-southeast-2:account_id:queue'
 
   role_profile 'es_comms' do
     security_group 'ElasticSearchCommsSG'
