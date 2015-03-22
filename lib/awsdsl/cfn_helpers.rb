@@ -53,12 +53,11 @@ module AWSDSL
     end
 
     def resolve_vpc(vpc)
-      return vpc if vpc.start_with('vpc-')
+      return vpc if vpc.start_with?('vpc-')
       get_vpc_by_name(vpc).id
     end
 
     def resolve_subnets(vpc, subnets)
-      ec2 = AWS::EC2.new
       subnets.map do |subnet|
         resolve_subnet(vpc, subnet)
       end.flatten
@@ -66,9 +65,24 @@ module AWSDSL
 
     def resolve_subnet(vpc, subnet)
       return [subnet] if subnet.start_with?('subnet-')
+      ec2 = AWS::EC2.new
       v = ec2.vpcs[vpc] if vpc.start_with?('vpc-')
       v ||= get_vpc_by_name(vpc)
       v.subnets.with_tag('Name', subnet).map(&:id)
+    end
+
+    def resolve_security_groups(vpc, security_groups)
+      security_groups.map do |sg|
+        resolve_security_group(vpc, sg)
+      end.flatten
+    end
+
+    def resolve_security_group(vpc, sg)
+      return [sg] if sg.start_with?('sg-')
+      ec2 = AWS::EC2.new
+      v = ec2.vpcs[vpc] if vpc.start_with?('vpc-')
+      v ||= get_vpc_by_name(vpc)
+      v.security_groups.with_tag('Name', sg).map(&:id)
     end
   end
 end

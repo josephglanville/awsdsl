@@ -29,22 +29,24 @@ module AWSDSL
 
           # ELB
           lb_name = "#{lb.name.capitalize}ELB"
+          lb_subnets = resolve_subnets(role.vpc || stack.vpc, lb.subnets || role.subnets)
           t.declare do
             LoadBalancer lb_name do
               Listeners listeners
               ConnectionSettings lb.connection_settings if lb.connection_settings
               HealthCheck health_check if health_check
               CrossZone true
-              Subnets resolve_subnets(lb.subnets || role.subnets)
+              Subnets lb_subnets
               SecurityGroups [Ref("#{lb_name}ELBSG")]
             end
           end
 
           # ELB SG
+          lb_vpc = resolve_vpc(role.vpc || stack.vpc)
           t.declare do
             EC2_SecurityGroup "#{lb_name}ELBSG" do
               GroupDescription "#{lb.name.capitalize} ELB Security Group"
-              VpcId resolve_vpc(role.vpc)
+              VpcId lb_vpc
               listeners.map { |l| l[:LoadBalancerPort] }.each do |port|
                 SecurityGroupIngress IpProtocol: 'tcp',
                                      FromPort: port,
@@ -104,6 +106,7 @@ module AWSDSL
         # Autoscaling Group
         update_policy = update_policy_defaults(role)
         lb_names = role.load_balancers.map(&:name)
+        subnets = resolve_subnets(role.vpc, role.subnets)
         t.declare do
           AutoScalingGroup "#{role_name}ASG" do
             LaunchConfigurationName Ref("#{role.name}LaunchConfig")
@@ -112,12 +115,13 @@ module AWSDSL
             MaxSize role.max_size
             DesiredCapacity role.tgt_size
             LoadBalancerNames lb_names.map { |name| Ref(name) }
-            VPCZoneIdentifier resolve_subnets(role.vpc, role.subnets)
+            VPCZoneIdentifier subnets
             AvailabiltityZones FnGetAZs('')
           end
         end
 
         # Launch Configuration
+        security_groups = resolve_security_groups(role.vpc || stack.vpc, role.security_groups)
         t.declare do
           LaunchConfiguration "#{role_name}LaunchConfig" do
             ImageId role.ami
@@ -125,7 +129,7 @@ module AWSDSL
             AssociatePublicIpAddress true
             InstanceType role.instance_type
             # TODO(jpg): Need to resolve this to IDs or Refs as necessary
-            SecurityGroups [Ref("#{role_name}SG")] + role.security_groups
+            SecurityGroups [Ref("#{role_name}SG")] + security_groups
             IamInstanceProfile Ref("#{role_name}InstanceProfile")
           end
         end
@@ -134,7 +138,7 @@ module AWSDSL
         t.declare do
           EC2_SecurityGroup "#{role_name}SG" do
             GroupDescription "#{role_name} Security Group"
-            VpcId role.vpc
+            VpcId role.vpc || stack.vpc
             # TODO(jpg): Better way of offering up defaults
             SecurityGroupIngress IpProtocol: 'tcp',
                                  FromPort: 22,
