@@ -17,7 +17,5 @@ Currently not implemented but AWS DSL will also support other resources like RDS
 TODO
 ----
 
-* AMI building hasn't been implemented yet
-* Conveniences like being able to specify security groups and subnets by name
 * non-Role resources like RDS etc
 * cloud-init/cfn-init integration and environment variable system
