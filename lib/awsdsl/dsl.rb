@@ -1,5 +1,6 @@
 require 'awsdsl/ext/proc'
 require 'awsdsl/ext/symbol'
+require 'active_support/core_ext/object/blank'
 require 'awsdsl/fn'
 
 module AWSDSL
@@ -49,6 +50,18 @@ module AWSDSL
       end
 
       instance_eval(&block) if block_given?
+    end
+
+    def to_h
+      h = {}
+      (self.class.attributes + [:name]).each { |attr| h.store(attr, send(attr)) }
+      self.class.multi_attributes.each { |attr| h.store(attr.plural_fn, send(attr.plural_fn)) }
+      self.class.sub_components.each do |attr|
+        comp = send(attr.plural_fn).map {|e| e.to_h}
+        h.store(attr.plural_fn, comp)
+      end
+      h.delete_if { |_k, v| v.blank? }
+      h
     end
 
     module ClassMethods
