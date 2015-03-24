@@ -5,6 +5,7 @@ stack 'logs' do
   snapshot_bucket_arn = 'arn:aws:s3:::snapshot_bucket'
   cloudtrail_queue_arn = 'arn:aws:sqs:ap-southeast-2:account_id:queue'
   vpc 'vpc-id'
+  environments 'production', 'test'
 
   role_profile 'es_comms' do
     security_group 'ElasticSearchCommsSG'
@@ -24,7 +25,7 @@ stack 'logs' do
 
   role 'logstash' do
     include_profile 'ec2_discovery', 'es_comms'
-    load_balancer 'logstashelb' do
+    load_balancer 'logstash' do
       listener port: 80
       listener port: 443, proto: 'HTTPS', cert: ssl_cert_arn
       listener port: 9000, proto: 'TCP'

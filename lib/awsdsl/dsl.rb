@@ -17,7 +17,8 @@ module AWSDSL
         attributes.each do |attr|
           define_method(attr) do |*args|
             if args.length > 0
-              instance_variable_set(attr.ivar, args.first)
+              args = args.length > 1 ? args : args.first
+              instance_variable_set(attr.ivar, args)
             else
               instance_variable_get(attr.ivar)
             end
