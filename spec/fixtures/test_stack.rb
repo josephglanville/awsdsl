@@ -4,11 +4,11 @@ stack 'logs' do
   zone_arn = 'arn:aws:route53:::hostedzone/zone_id'
   snapshot_bucket_arn = 'arn:aws:s3:::snapshot_bucket'
   cloudtrail_queue_arn = 'arn:aws:sqs:ap-southeast-2:account_id:queue'
-  vpc 'vpc-id'
 
   role_profile 'es_comms' do
-    security_group 'ElasticSearchCommsSG'
+    security_group 'sg-id'
     subnets 'subnet-id'
+    vpc 'vpc-id'
   end
 
   role_profile 'es_bucket' do
@@ -46,7 +46,7 @@ stack 'logs' do
       listener port: 9200
       health_check target: 'HTTP:9200/'
       dns_record name: 'elasticsearch.zone.com', zone: 'zone-id'
-      security_group 'ElasticSearchCommsSG'
+      security_group 'sg-id'
       internal true
     end
     min_size 3

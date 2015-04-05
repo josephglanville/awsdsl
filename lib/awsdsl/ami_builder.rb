@@ -57,7 +57,7 @@ module AWSDSL
     end
 
     def base_ami(role)
-      base = role.base_ami || @stack.base_ami || 'ubuntu'
+      base = role.base_ami || 'ubuntu'
       if BaseAMI::DISTROS.include?(base)
         base = BaseAMI.find(base)
       end

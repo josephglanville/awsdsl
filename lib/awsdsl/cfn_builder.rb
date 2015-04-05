@@ -22,7 +22,7 @@ module AWSDSL
         end
         stack.roles.each do |role|
           role_name = role.name.capitalize
-          role_vpc = role.vpc || stack.vpc
+          role_vpc = role.vpc
 
           # Create ELBs and appropriate security groups etc.
           role.load_balancers.each do |lb|
@@ -44,7 +44,7 @@ module AWSDSL
             end
 
             # ELB SG
-            lb_vpc = resolve_vpc(role.vpc || stack.vpc)
+            lb_vpc = resolve_vpc(role.vpc)
             t.declare do
               EC2_SecurityGroup "#{lb_name}ELBSG" do
                 GroupDescription "#{lb.name.capitalize} ELB Security Group"
