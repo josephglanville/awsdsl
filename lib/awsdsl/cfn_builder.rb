@@ -147,6 +147,15 @@ module AWSDSL
                                    FromPort: 22,
                                    ToPort: 22,
                                    CidrIp: '0.0.0.0/0'
+              role.allows.each do |rule|
+                ports = rule[:ports].is_a?(Array) ? rule[:ports] : [rule[:ports]]
+                ports.each do |port|
+                  SecurityGroupIngress IpProtocol: rule[:proto] || 'tcp',
+                                       FromPort: port,
+                                       ToPort: port,
+                                       SourceSecurityGroupId: Ref("#{rule[:role].capitalize}SG")
+                end
+              end
             end
           end
         end

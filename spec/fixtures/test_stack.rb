@@ -55,6 +55,8 @@ stack 'logs' do
     update_policy pause_time: '10M', min_inservice: 3
     instance_type 't2.micro'
     chef_provisioner runlist: 'elasticsearch'
+    allow role: 'logstash', ports: 9200
+    allow role: 'utility', ports: 9200
   end
 
   role 'utility' do

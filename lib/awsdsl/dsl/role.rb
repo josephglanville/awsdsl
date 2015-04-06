@@ -10,7 +10,8 @@ module AWSDSL
                      :file_provisioner,
                      :chef_provisioner,
                      :ansible_provisioner,
-                     :subnet
+                     :subnet,
+                     :allow
     attributes :min_size,
                :max_size,
                :tgt_size,
