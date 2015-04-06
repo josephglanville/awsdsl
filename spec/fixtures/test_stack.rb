@@ -57,6 +57,7 @@ stack 'logs' do
     chef_provisioner runlist: 'elasticsearch'
     allow role: 'logstash', ports: 9200
     allow role: 'utility', ports: 9200
+    allow role: 'elasticsearch', ports: 9200
   end
 
   role 'utility' do

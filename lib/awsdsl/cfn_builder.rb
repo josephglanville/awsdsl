@@ -39,14 +39,14 @@ module AWSDSL
                 HealthCheck health_check if health_check
                 CrossZone true
                 Subnets lb_subnets
-                SecurityGroups [Ref("#{lb_name}ELBSG")]
+                SecurityGroups [Ref("#{lb_name}SG")]
               end
             end
 
             # ELB SG
             lb_vpc = resolve_vpc(role.vpc)
             t.declare do
-              EC2_SecurityGroup "#{lb_name}ELBSG" do
+              EC2_SecurityGroup "#{lb_name}SG" do
                 GroupDescription "#{lb.name.capitalize} ELB Security Group"
                 VpcId lb_vpc
                 listeners.map { |l| l[:LoadBalancerPort] }.each do |port|
@@ -147,13 +147,30 @@ module AWSDSL
                                    FromPort: 22,
                                    ToPort: 22,
                                    CidrIp: '0.0.0.0/0'
-              role.allows.each do |rule|
+              # Access from other roles
+              # TODO(jpg): catch undefined roles before template generation
+              role.allows.select {|r| r[:role] != role.name }.each do |rule|
                 ports = rule[:ports].is_a?(Array) ? rule[:ports] : [rule[:ports]]
                 ports.each do |port|
                   SecurityGroupIngress IpProtocol: rule[:proto] || 'tcp',
                                        FromPort: port,
                                        ToPort: port,
                                        SourceSecurityGroupId: Ref("#{rule[:role].capitalize}SG")
+                end
+              end
+            end
+
+            # Intracluster communication
+            role.allows.select {|r| r[:role] == role.name }.each do |rule|
+              ports = rule[:ports].is_a?(Array) ? rule[:ports] : [rule[:ports]]
+              proto = rule[:proto] || 'tcp'
+              ports.each do |port|
+                EC2_SecurityGroupIngress "#{role_name}SG#{proto.upcase}#{port}" do
+                  GroupId Ref("#{role_name}SG")
+                  IpProtocol proto
+                  FromPort port
+                  ToPort port
+                  SourceSecurityGroupId Ref("#{role_name}SG")
                 end
               end
             end
