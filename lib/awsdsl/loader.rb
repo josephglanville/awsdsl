@@ -3,6 +3,7 @@ require 'awsdsl/dsl/stack'
 require 'awsdsl/dsl/role'
 require 'awsdsl/dsl/role_profile'
 require 'awsdsl/dsl/load_balancer'
+require 'awsdsl/dsl/elasticache'
 require 'awsdsl/fn'
 
 module AWSDSL

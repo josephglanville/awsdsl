@@ -77,4 +77,12 @@ stack 'logs' do
     instance_type 't2.micro'
     chef_provisioner runlist: 'utility'
   end
+
+  elasticache 'redis' do
+    vpc 'vpc-id'
+    subnet 'subnet-id'
+    engine 'redis'
+    node_type 't2.micro'
+    allow role: 'logstash'
+  end
 end

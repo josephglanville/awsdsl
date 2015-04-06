@@ -20,6 +20,7 @@ module AWSDSL
         @t.declare do
           Description stack.description
         end
+        build_elasticaches
         build_roles
         @t
         # TODO(jpg): Think about how to handle non-role stuff and how
@@ -39,9 +40,11 @@ module AWSDSL
           listeners = lb.listeners.map { |l| listener_defaults(l) }
           health_check = health_check_defaults(lb.health_check) if lb.health_check
 
-          # ELB
           lb_name = "#{lb.name.capitalize}ELB"
-          lb_subnets = resolve_subnets(role_vpc, lb.subnets || role.subnets)
+          lb_vpc = resolve_vpc(role.vpc)
+          lb_subnets = resolve_subnets(lb_vpc, lb.subnets || role.subnets)
+
+          # ELB
           @t.declare do
             LoadBalancer lb_name do
               Listeners listeners
@@ -54,7 +57,6 @@ module AWSDSL
           end
 
           # ELB SG
-          lb_vpc = resolve_vpc(role.vpc)
           @t.declare do
             EC2_SecurityGroup "#{lb_name}SG" do
               GroupDescription "#{lb.name.capitalize} ELB Security Group"
@@ -183,6 +185,57 @@ module AWSDSL
                 SourceSecurityGroupId Ref("#{role_name}SG")
               end
             end
+          end
+        end
+      end
+    end
+
+    def build_elasticaches
+      default_ports = {
+        'redis' => 6379,
+        'memcached' => 11211
+      }
+      stack = @stack
+      stack.elasticaches.each do |cache|
+        # Default to Redis, also set default port if unset.
+        engine ||= 'redis'
+        port ||= default_ports[engine]
+        num_nodes ||= 1
+        cache_vpc = resolve_vpc(cache.vpc)
+        cache_name = "#{cache.name.capitalize}Cache"
+
+        # SG
+        @t.declare do
+          EC2_SecurityGroup "#{cache_name}SG" do
+            GroupDescription "#{cache.name.capitalize} Cache Security Group"
+            VpcId cache_vpc
+            cache.allows.each do |rule|
+              SecurityGroupIngress IpProtocol: 'tcp',
+                                   FromPort: port,
+                                   ToPort: port,
+                                   SourceSecurityGroupId: Ref("#{rule[:role].capitalize}SG")
+            end
+          end
+        end
+
+        # ElastiCacheSubnetGroup
+        cache_subnets = resolve_subnets(cache.vpc, cache.subnets)
+        @t.declare do
+          ElastiCache_SubnetGroup "#{cache_name}SubnetGroup" do
+            Description "SubnetGroup for #{cache_name}"
+            SubnetIds cache_subnets
+          end
+        end
+
+        # CacheCluster
+        @t.declare do
+          CacheCluster cache_name do
+            CacheNodeType cache.node_type
+            NumCacheNodes num_nodes
+            Engine engine
+            Port port
+            CacheSubnetGroupName Ref("#{cache_name}SubnetGroup")
+            VpcSecurityGroupIds [FnGetAtt("#{cache_name}SG", 'GroupId')]
           end
         end
       end

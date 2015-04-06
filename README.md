@@ -101,5 +101,6 @@ TODO
 ----
 
 * non-Role resources like RDS etc
+* Easy way to scope extra policy statements to resources to be created by stack
 * cloud-init/cfn-init integration and environment variable system
 * command line tool and rake tasks to integrate AMI build and CloudFormation stack operations into deployment workflow
