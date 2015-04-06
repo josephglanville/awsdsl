@@ -24,11 +24,11 @@ stack 'logs' do
   zone_arn = 'arn:aws:route53:::hostedzone/zone_id'
   snapshot_bucket_arn = 'arn:aws:s3:::snapshot_bucket'
   cloudtrail_queue_arn = 'arn:aws:sqs:ap-southeast-2:account_id:queue'
-  vpc 'vpc-id'
 
   role_profile 'es_comms' do
-    security_group 'ElasticSearchCommsSG'
+    security_group 'sg-id'
     subnets 'subnet-id'
+    vpc 'vpc-id'
   end
 
   role_profile 'es_bucket' do
@@ -66,7 +66,7 @@ stack 'logs' do
       listener port: 9200
       health_check target: 'HTTP:9200/'
       dns_record name: 'elasticsearch.zone.com', zone: 'zone-id'
-      security_group 'ElasticSearchCommsSG'
+      security_group 'sg-id'
       internal true
     end
     min_size 3
@@ -75,6 +75,9 @@ stack 'logs' do
     update_policy pause_time: '10M', min_inservice: 3
     instance_type 't2.micro'
     chef_provisioner runlist: 'elasticsearch'
+    allow role: 'logstash', ports: 9200
+    allow role: 'utility', ports: 9200
+    allow role: 'elasticsearch', ports: 9200
   end
 
   role 'utility' do
@@ -93,6 +96,14 @@ stack 'logs' do
     update_policy min_inservice: 0
     instance_type 't2.micro'
     chef_provisioner runlist: 'utility'
+  end
+
+  elasticache 'redis' do
+    vpc 'vpc-id'
+    subnet 'subnet-id'
+    engine 'redis'
+    node_type 't2.micro'
+    allow role: 'logstash'
   end
 end
 ```
