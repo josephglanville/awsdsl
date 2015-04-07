@@ -41,7 +41,7 @@ module AWSDSL
 
     def get_zone_for_record(name)
       r53 = AWS::Route53.new
-      zones = r53.hosted_zones.sort_by {|z| z.name.split('.').count }.reverse
+      zones = r53.hosted_zones.sort_by { |z| z.name.split('.').count }.reverse
       zones.find do |z|
         name.split('.').reverse.take(z.name.split('.').count) == z.name.split('.').reverse
       end

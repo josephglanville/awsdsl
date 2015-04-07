@@ -5,6 +5,17 @@ stack 'logs' do
   snapshot_bucket_arn = 'arn:aws:s3:::snapshot_bucket'
   cloudtrail_queue_arn = 'arn:aws:sqs:ap-southeast-2:account_id:queue'
 
+  vpc 'logs' do
+    region 'ap-southeast-2'
+    subnet 'public' do
+      az 'a', 'b'
+    end
+    subnet 'private' do
+      az 'a', 'b'
+      igw false
+    end
+  end
+
   role_profile 'es_comms' do
     security_group 'sg-id'
     subnets 'subnet-id'

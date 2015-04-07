@@ -24,3 +24,7 @@ def yaml_fixture(*path)
 end
 
 AWS.stub!
+
+RSpec.configure do |config|
+  config.filter_run_excluding type: 'integration' unless ENV['INTEGRATION']
+end

@@ -1,4 +1,5 @@
 require 'cfndsl'
+require 'netaddr'
 require 'awsdsl/cfn_helpers'
 
 module AWSDSL
@@ -20,6 +21,7 @@ module AWSDSL
         Description stack.description
       end
       AWS.memoize do
+        build_vpcs
         build_elasticaches
         build_roles
       end
@@ -70,8 +72,9 @@ module AWSDSL
           # ELB DNS records
           lb.dns_records.each do |record|
             zone = record[:zone] || get_zone_for_record(record[:name]).id
+            record_name = record[:name].split('.').map(&:capitalize).join
             @t.declare do
-              RecordSet record[:name] do
+              RecordSet record_name do
                 HostedZoneId zone
                 Name record
                 Type 'A'
@@ -117,11 +120,11 @@ module AWSDSL
 
         # Autoscaling Group
         update_policy = update_policy_defaults(role)
-        lb_names = role.load_balancers.map(&:name)
+        lb_names = role.load_balancers.map { |lb| "#{lb.name.capitalize}ELB" }
         subnets = resolve_subnets(role_vpc, role.subnets)
         @t.declare do
           AutoScalingGroup "#{role_name}ASG" do
-            LaunchConfigurationName Ref("#{role.name}LaunchConfig")
+            LaunchConfigurationName Ref("#{role.name.capitalize}LaunchConfig")
             UpdatePolicy 'AutoScalingRollingUpdate', update_policy if update_policy
             MinSize role.min_size
             MaxSize role.max_size
@@ -158,7 +161,7 @@ module AWSDSL
                                  CidrIp: '0.0.0.0/0'
             # Access from other roles
             # TODO(jpg): catch undefined roles before template generation
-            role.allows.select {|r| r[:role] != role.name }.each do |rule|
+            role.allows.select { |r| r[:role] != role.name }.each do |rule|
               ports = rule[:ports].is_a?(Array) ? rule[:ports] : [rule[:ports]]
               ports.each do |port|
                 SecurityGroupIngress IpProtocol: rule[:proto] || 'tcp',
@@ -170,7 +173,7 @@ module AWSDSL
           end
 
           # Intracluster communication
-          role.allows.select {|r| r[:role] == role.name }.each do |rule|
+          role.allows.select { |r| r[:role] == role.name }.each do |rule|
             ports = rule[:ports].is_a?(Array) ? rule[:ports] : [rule[:ports]]
             proto = rule[:proto] || 'tcp'
             ports.each do |port|
@@ -239,10 +242,93 @@ module AWSDSL
         # Add additional policy to each Role that can access this Cache
         # This will allow said Role to discover the Cache nodes
         cache.allows.each do |rule|
-          role = stack.roles.find {|r| r.name = rule[:role] }
+          role = stack.roles.find { |r| r.name = rule[:role] }
           role.policy_statement effect: 'Allow',
                                 action: 'elasticache:Describe*',
                                 resource: '*'
+        end
+      end
+    end
+
+    def build_vpcs
+      stack = @stack
+      stack.vpcs.each do |vpc|
+        igw = vpc.igw || true
+        dns = vpc.dns || true
+        cidr = vpc.cidr || '10.0.0.0/8'
+        subnet_bits = vpc.subnet_bits || 24
+        dns_hostnames = vpc.dns_hostnames || true
+
+        cidr = NetAddr::CIDR.create(cidr)
+        subnets = cidr.subnet(Bits: subnet_bits).to_enum
+
+        # VPC
+        vpc_name = "#{vpc.name.capitalize}VPC"
+        @t.declare do
+          VPC vpc_name do
+            CidrBlock cidr
+            EnableDnsSupport dns
+            EnableDnsHostnames dns_hostnames
+          end
+        end
+
+        if igw # Don't create internet facing stuff if igw is not enabled
+          igw_name = "#{vpc.name.capitalize}IGW"
+
+          # IGW
+          @t.declare do
+            InternetGateway igw_name
+          end
+
+          # Attach to VPC
+          @t.declare do
+            VPCGatewayAttachment "#{vpc.name.capitalize}GWAttachment" do
+              VpcId Ref(vpc_name)
+              InternetGatewayId Ref(igw_name)
+            end
+          end
+
+          # RouteTable
+          rt_name = "#{vpc.name.capitalize}RouteTable"
+          @t.declare do
+            RouteTable rt_name do
+              VpcId Ref(vpc_name)
+            end
+          end
+
+          # Default route for RouteTable
+          @t.declare do
+            Route "#{vpc.name.capitalize}DefaultRoute" do
+              RouteTableId Ref(rt_name)
+              DestinationCidrBlock '0.0.0.0/0'
+              GatewayId Ref(igw_name)
+              # TODO(jpg): DependsOn rt_name
+            end
+          end
+        end
+
+        vpc.subnets.each do |subnet|
+          subnet_igw = subnet.igw || igw
+          azs = subnet.azs || fetch_availability_zones(vpc.region)
+          subnet_name = "#{vpc.name.capitalize}#{subnet.name.capitalize}Subnet"
+          azs.each do |az|
+            subnet_name_az = "#{subnet_name}#{az.capitalize}"
+            @t.declare do
+              Subnet subnet_name_az do
+                AvailabilityZone "#{vpc.region}#{az}"
+                CidrBlock subnets.next
+                VpcId Ref(vpc_name)
+              end
+
+              if subnet_igw
+                SubnetRouteTableAssociation "#{subnet_name_az}DefaultRTAssoc" do
+                  SubnetId Ref(subnet_name_az)
+                  RouteTableId Ref(rt_name)
+                  # TODO(jpg): DependsOn rt_name
+                end
+              end
+            end
+          end
         end
       end
     end

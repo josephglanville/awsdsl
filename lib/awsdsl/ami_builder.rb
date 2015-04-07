@@ -38,7 +38,7 @@ module AWSDSL
       rescue => e
         @builder.destroy_instance
         @builder.destroy_keypair
-        fail "Failed to build AMI for #{role.name}:\nError: #{e.message}\nBacktrace: #{e.backtrace.join("\n")}"
+        raise "Failed to build AMI for #{role.name}:\nError: #{e.message}\nBacktrace: #{e.backtrace.join("\n")}"
       end
     end
 
@@ -76,8 +76,8 @@ module AWSDSL
       amis = ec2.images.with_owner('self').select do |i|
         i.name.start_with?("#{@stack.name}-#{role.name}")
       end
-      latest_num = amis.map {|i| i.name.split('-').last.to_i }.sort.last
-       amis.select {|i| i.name == "#{ami}-#{env}-#{latest_num}"}.first
+      latest_num = amis.map { |i| i.name.split('-').last.to_i }.sort.last
+      amis.select { |i| i.name == "#{ami}-#{env}-#{latest_num}" }.first
     end
   end
 end
