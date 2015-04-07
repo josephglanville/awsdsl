@@ -238,6 +238,15 @@ module AWSDSL
             VpcSecurityGroupIds [FnGetAtt("#{cache_name}SG", 'GroupId')]
           end
         end
+
+        # Add additional policy to each Role that can access this Cache
+        # This will allow said Role to discover the Cache nodes
+        cache.allows.each do |rule|
+          role = stack.roles.find {|r| r.name = rule[:role] }
+          role.policy_statement effect: 'Allow',
+                                action: 'elasticache:Describe*',
+                                resource: '*'
+        end
       end
     end
   end
