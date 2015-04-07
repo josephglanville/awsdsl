@@ -31,7 +31,7 @@ module AWSDSL
             cur = instance_variable_get(attr.plural_ivar) || []
             instance_variable_set(attr.plural_ivar, cur + args)
           end
-          define_method(attr.plural_fn) do |*_args, &_b|
+          define_method(attr.plural_fn) do |*_, &_|
             instance_variable_get(attr.plural_ivar) || []
           end
         end
@@ -43,7 +43,7 @@ module AWSDSL
             klass = Object.const_get("AWSDSL::#{klass_name}")
             instance_variable_set(attr.plural_ivar, cur + [klass.new(args.first, &b)])
           end
-          define_method(attr.plural_fn) do |*_args, &_b|
+          define_method(attr.plural_fn) do |*_, &_|
             instance_variable_get(attr.plural_ivar) || []
           end
         end
@@ -60,7 +60,7 @@ module AWSDSL
         comp = send(attr.plural_fn).map(&:to_h)
         h.store(attr.plural_fn, comp)
       end
-      h.delete_if { |_k, v| v.blank? }
+      h.delete_if { |_, v| v.blank? }
       h
     end
 
