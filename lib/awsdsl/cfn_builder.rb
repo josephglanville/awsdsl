@@ -14,19 +14,16 @@ module AWSDSL
     end
 
     def build
+      @t = CfnDsl::CloudFormationTemplate.new
+      stack = @stack
+      @t.declare do
+        Description stack.description
+      end
       AWS.memoize do
-        @t = CfnDsl::CloudFormationTemplate.new
-        stack = @stack
-        @t.declare do
-          Description stack.description
-        end
         build_elasticaches
         build_roles
-        @t
-        # TODO(jpg): Think about how to handle non-role stuff and how
-        # that will interact with roles. Also maybe consider inter-role
-        # dependency issues.
       end
+      @t
     end
 
     def build_roles
