@@ -1,7 +1,10 @@
 require 'aws'
+require 'cfndsl'
 
 module AWSDSL
   module CfnHelpers
+    include CfnDsl::Functions
+
     def listener_defaults(listener)
       listener[:proto] ||= 'HTTP'
       listener[:instance_port] ||= listener[:port]
@@ -54,17 +57,40 @@ module AWSDSL
 
     def resolve_vpc(vpc)
       return vpc if vpc.start_with?('vpc-')
+      return Ref("#{vpc.capitalize}VPC") if vpc_defined?(vpc)
       get_vpc_by_name(vpc).id
     end
 
     def resolve_subnets(vpc, subnets)
-      subnets.map do |subnet|
-        resolve_subnet(vpc, subnet)
-      end.flatten
+      # We don't use flatten here because CfnDsl blows up
+      s = []
+      subnets.each do |subnet|
+        s += resolve_subnet(vpc, subnet)
+      end
+      s
+    end
+
+    def subnet_refs(vpc, subnet)
+      vpc = @stack.vpcs.find {|v| v.name == vpc }
+      subnet = vpc.subnets.find {|s| s.name == subnet}
+      subnet_name = "#{vpc.name.capitalize}#{subnet.name.capitalize}Subnet"
+      azs = subnet.azs || fetch_availability_zones(vpc.region)
+      azs.map do |az|
+        Ref("#{subnet_name}#{az.capitalize}")
+      end
+    end
+
+    def subnet_defined?(vpc, subnet)
+      @stack.vpcs.find {|v| v.name == vpc }.subnets.map(&:name).include?(subnet)
+    end
+
+    def vpc_defined?(vpc)
+      @stack.vpcs.map(&:name).include?(vpc)
     end
 
     def resolve_subnet(vpc, subnet)
       return [subnet] if subnet.start_with?('subnet-')
+      return subnet_refs(vpc, subnet) if subnet_defined?(vpc, subnet)
       ec2 = AWS::EC2.new
       v = ec2.vpcs[vpc] if vpc.start_with?('vpc-')
       v ||= get_vpc_by_name(vpc)

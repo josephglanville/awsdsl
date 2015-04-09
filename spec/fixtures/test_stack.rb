@@ -18,8 +18,8 @@ stack 'logs' do
 
   role_profile 'es_comms' do
     security_group 'sg-id'
-    subnets 'subnet-id'
-    vpc 'vpc-id'
+    subnet 'public'
+    vpc 'logs'
   end
 
   role_profile 'es_bucket' do
@@ -90,8 +90,8 @@ stack 'logs' do
   end
 
   elasticache 'redis' do
-    vpc 'vpc-id'
-    subnet 'subnet-id'
+    vpc 'logs'
+    subnet 'private'
     engine 'redis'
     node_type 't2.micro'
     allow role: 'logstash'

@@ -32,7 +32,7 @@ module AWSDSL
       stack = @stack
       stack.roles.each do |role|
         role_name = role.name.capitalize
-        role_vpc = role.vpc
+        role_vpc = resolve_vpc(role.vpc)
 
         # Create ELBs and appropriate security groups etc.
         role.load_balancers.each do |lb|
@@ -40,8 +40,8 @@ module AWSDSL
           health_check = health_check_defaults(lb.health_check) if lb.health_check
 
           lb_name = "#{lb.name.capitalize}ELB"
-          lb_vpc = resolve_vpc(role.vpc)
-          lb_subnets = resolve_subnets(lb_vpc, lb.subnets || role.subnets)
+          subnets = lb.subnets.empty? ? role.subnets : lb.subnets
+          lb_subnets = resolve_subnets(role.vpc, subnets)
 
           # ELB
           @t.declare do
@@ -59,7 +59,7 @@ module AWSDSL
           @t.declare do
             EC2_SecurityGroup "#{lb_name}SG" do
               GroupDescription "#{lb.name.capitalize} ELB Security Group"
-              VpcId lb_vpc
+              VpcId role_vpc
               listeners.map { |l| l[:LoadBalancerPort] }.each do |port|
                 SecurityGroupIngress IpProtocol: 'tcp',
                                      FromPort: port,
@@ -121,7 +121,7 @@ module AWSDSL
         # Autoscaling Group
         update_policy = update_policy_defaults(role)
         lb_names = role.load_balancers.map { |lb| "#{lb.name.capitalize}ELB" }
-        subnets = resolve_subnets(role_vpc, role.subnets)
+        subnets = resolve_subnets(role.vpc, role.subnets)
         @t.declare do
           AutoScalingGroup "#{role_name}ASG" do
             LaunchConfigurationName Ref("#{role.name.capitalize}LaunchConfig")
@@ -136,7 +136,7 @@ module AWSDSL
         end
 
         # Launch Configuration
-        security_groups = resolve_security_groups(role_vpc, role.security_groups)
+        security_groups = resolve_security_groups(role.vpc, role.security_groups)
         @t.declare do
           LaunchConfiguration "#{role_name}LaunchConfig" do
             ImageId role.ami
