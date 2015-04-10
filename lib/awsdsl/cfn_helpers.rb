@@ -62,12 +62,9 @@ module AWSDSL
     end
 
     def resolve_subnets(vpc, subnets)
-      # We don't use flatten here because CfnDsl blows up
-      s = []
-      subnets.each do |subnet|
-        s += resolve_subnet(vpc, subnet)
-      end
-      s
+      subnets.map do |subnet|
+        resolve_subnet(vpc, subnet)
+      end.flatten(1)
     end
 
     def subnet_refs(vpc, subnet)
