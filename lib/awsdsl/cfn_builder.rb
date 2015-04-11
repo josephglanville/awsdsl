@@ -23,6 +23,7 @@ module AWSDSL
       AWS.memoize do
         build_vpcs
         build_elasticaches
+        build_rdss
         build_roles
       end
       @t
@@ -246,6 +247,22 @@ module AWSDSL
           role.policy_statement effect: 'Allow',
                                 action: 'elasticache:Describe*',
                                 resource: '*'
+        end
+      end
+    end
+
+    def build_rdss
+      stack = @stack
+      stack.rdss.each do |rds|
+        rds_name = "#{rds.name.capitalize}RDS"
+        engine = rds.engine || 'postgres'
+        internal = rds.internal || true
+        rds_subnets = resolve_subnets(rds.vpc, rds.subnets)
+        @t.declare do
+          DBInstance rds_name do
+            Engine engine
+            Class rds.node_type
+          end
         end
       end
     end

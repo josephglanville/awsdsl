@@ -2,7 +2,7 @@ module AWSDSL
   class Stack
     include DSL
     attributes :description
-    sub_components :role, :role_profile, :elasticache, :vpc
+    sub_components :role, :role_profile, :elasticache, :rds, :vpc
 
     def mixin_profiles
       @roles.each do |role|

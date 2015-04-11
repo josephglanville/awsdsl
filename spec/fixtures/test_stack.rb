@@ -96,4 +96,11 @@ stack 'logs' do
     node_type 't2.micro'
     allow role: 'logstash'
   end
+
+  rds 'postgres' do
+    vpc 'logs'
+    subnet 'private'
+    engine 'postgres'
+    node_type 'db.t2.micro'
+  end
 end
