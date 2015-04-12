@@ -65,6 +65,7 @@ stack 'logs' do
     tgt_size 5
     update_policy pause_time: '10M', min_inservice: 3
     instance_type 't2.micro'
+    block_device name: '/dev/sda1', size: 20
     chef_provisioner runlist: 'elasticsearch'
     allow role: 'logstash', ports: 9200
     allow role: 'utility', ports: 9200

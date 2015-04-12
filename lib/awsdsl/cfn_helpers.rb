@@ -42,6 +42,21 @@ module AWSDSL
       Hash[policy_statement.map { |k, v| [k.to_s.capitalize.to_sym, v] }]
     end
 
+    def format_block_devices(devices)
+      devices.map do |dev|
+        h = { DeviceName: dev[:name] }
+        if dev[:ephemeral]
+          h[:VirtualName] = "ephemeral#{dev[:ephemeral]}"
+        else
+          h[:Ebs] = {
+            VolumeSize: dev[:size],
+            VolumeType: dev[:type] || 'gp2'
+          }
+        end
+        h
+      end
+    end
+
     def get_zone_for_record(name)
       r53 = AWS::Route53.new
       zones = r53.hosted_zones.sort_by { |z| z.name.split('.').count }.reverse

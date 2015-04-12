@@ -137,6 +137,7 @@ module AWSDSL
 
         # Launch Configuration
         security_groups = resolve_security_groups(role.vpc, role.security_groups)
+        block_devices = format_block_devices(role.block_devices)
         @t.declare do
           LaunchConfiguration "#{role_name}LaunchConfig" do
             ImageId role.ami
@@ -146,6 +147,7 @@ module AWSDSL
             # TODO(jpg): Need to resolve this to IDs or Refs as necessary
             SecurityGroups [Ref("#{role_name}SG")] + security_groups
             IamInstanceProfile Ref("#{role_name}InstanceProfile")
+            BlockDeviceMappings block_devices
           end
         end
 
