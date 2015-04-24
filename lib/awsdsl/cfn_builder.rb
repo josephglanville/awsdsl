@@ -150,6 +150,7 @@ module AWSDSL
             SecurityGroups [Ref("#{role_name}SG")] + security_groups
             IamInstanceProfile Ref("#{role_name}InstanceProfile")
             BlockDeviceMappings block_devices
+            KeyName role.key_pair if role.key_pair
           end
         end
 
