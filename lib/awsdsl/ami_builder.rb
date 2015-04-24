@@ -13,8 +13,19 @@ module AWSDSL
       end
     end
 
+    def latest_amis
+      @stack.roles.each do |role|
+        role.ami = latest_ami(role).id
+      end
+      @stack
+    end
+
     def self.build(stack)
       AMIBuilder.new(stack).build
+    end
+
+    def self.latest_amis(stack)
+      AMIBuilder.new(stack).latest_amis
     end
 
     def build_ami(role)
