@@ -29,7 +29,43 @@ To get started with AWS DSL you need a few things.
 
 Because AWS DSL abstracts away the vast majority of CloudFormation you shouldn't need an indepth understanding of CloudFormation but it doesn't hurt.
 
-Example Stackfile
+Simple Stackfile
+----------------
+
+```ruby
+stack 'static' do
+  description 'static files example'
+
+  vpc 'static' do
+    region 'ap-southeast-2'
+    subnet 'public' do
+      az 'a', 'b'
+    end
+  end
+
+  role 'nginx' do
+    vpc 'static'
+    subnet 'public'
+    load_balancer 'static' do
+      listener port: 80
+      health_check target: 'HTTP:80/'
+    end
+    update_policy min_inservice: 0
+    instance_type 't2.micro'
+    key_pair 'joseph@reinteractive.net'
+    chef_provisioner runlist: 'nginx'
+    vars nginx: {
+      init_style: 'upstart'
+    }
+  end
+end
+```
+
+This simple stack declares a simple role along with provisioning a full VPC.
+Said VPC includes 2 subnets across 2 AZs and an Internet Gateway to allow public addressing to work.
+It runs the nginx::default recipe when preparing the AMI, providing the contents of vars as the node attributes.
+
+Complex Stackfile
 -----------------
 
 ```ruby
@@ -123,6 +159,11 @@ stack 'logs' do
   end
 end
 ```
+
+This much more complex example deploys a full Elasticsearch Logstash Kibana cluster. Along with standing up an Elasticache cluster running Redis.
+It uses advanced features like Role Profiles (which are effectively Role mixins) and the powerful "allow" syntax which makes configuring security groups a breeze.
+
+As you can see AWS DSL doesn't get in your way if you need to declare additional policy documents or do advanced things like setup SSL listeners or configure DNS records for your ELBs.
 
 Command Line
 ------------
