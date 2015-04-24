@@ -4,18 +4,33 @@ AWS DSL
 This project is an opinionated take on running applications on AWS.
 It leverages CloudFormation and Gersberms to build your application into an Amazon Machine Image and deploy it on bare EC2 servers.
 
-Design
-------
+In a nutshell you declare your infrastructure in a Stackfile, which is a Ruby DSL that describes CloudFormation resources and AMI build instructions.
 
-AWS DSL thinks about your application in terms of Roles. A role is a singular purposed entity in your application and represents a build target and a scaling primitive.
-You specify how to package your application into an AMI, tell it how many instances you want to run and any other considerations like security groups and away it goes.
-
-To DRY up this process AWS DSL has Role Profiles. Role Profiles are analagous to mixins (or multiple inheritance if you must), anything you can put in a Role can be put in Role Profile and then you can mixin multiple Role Profiles into a Role with the include_profile keyword.
-
-Currently not implemented but AWS DSL will also support other resources like RDS, Elasticache, DynamoDB and S3 buckets. Automatically creating and managing resources around your application so you can create environments and destroy them at will with all of their dependencies cleaned up.
-
-Example
+Install
 -------
+
+For now I recommending using Bundler to install and manage AWS DSL.
+Simply add this to your Gemfile
+
+```ruby
+gem 'awsdsl', git: 'https://github.com/josephglanville/awsdsl'
+```
+
+I will publish the gem to RubyGems when I feel it's stabilized.
+
+Getting Started
+---------------
+
+To get started with AWS DSL you need a few things.
+
+* Your application deployable using Chef.
+* Your Chef cookbooks managed with Berkshelf.
+* Basic understanding of EC2, ELB and any other resources you might need.
+
+Because AWS DSL abstracts away the vast majority of CloudFormation you shouldn't need an indepth understanding of CloudFormation but it doesn't hurt.
+
+Example Stackfile
+-----------------
 
 ```ruby
 stack 'logs' do
@@ -109,7 +124,43 @@ stack 'logs' do
 end
 ```
 
+Command Line
+------------
+
+Once you have your Stackfile you will need to build the AMIs.
+
+```
+bundle exec awsdsl build
+```
+
+Then create your stack
+
+```
+bundle exec awsdsl create
+```
+
+When you build new AMIs or update settings in your Stackfile you can push updates like so
+
+```
+bundle exec awsdsl update
+```
+
+Philosophy
+----------
+
+AWS DSL was written to enable the versioning of infrastructure alongside code.
+All infrastructure concerns are declared in the AWS DSL Stackfile including how to configure the application runtime environment which will be built into an AMI.
+This is advantagous as updates to code that require infrastructure support can be done in unison.
+
+AWS DSL thinks about your application in terms of Roles. A role is a singular purposed entity in your application and represents a build target and a scaling primitive.
+You specify how to package your application into an AMI, tell it how many instances you want to run and any other considerations like security groups and away it goes.
+
+To DRY up this process AWS DSL has Role Profiles. Role Profiles are analagous to mixins (or multiple inheritance if you must), anything you can put in a Role can be put in Role Profile and then you can mixin multiple Role Profiles into a Role with the include_profile keyword.
+
+
+
 TODO
 ----
 
 * cloud-init/cfn-init integration and environment variable system
+* build AMIs seperately
