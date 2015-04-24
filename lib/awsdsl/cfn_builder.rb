@@ -39,7 +39,7 @@ module AWSDSL
           listeners = lb.listeners.map { |l| listener_defaults(l) }
           health_check = health_check_defaults(lb.health_check) if lb.health_check
 
-          lb_name = "#{lb.name.capitalize}ELB"
+          lb_name = "#{role_name}#{lb.name.capitalize}ELB"
           subnets = lb.subnets.empty? ? role.subnets : lb.subnets
           lb_subnets = resolve_subnets(role.vpc, subnets)
 
