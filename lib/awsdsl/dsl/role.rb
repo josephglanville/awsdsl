@@ -19,6 +19,7 @@ module AWSDSL
                :update_policy,
                :instance_type,
                :vpc,
-               :base_ami
+               :base_ami,
+               :vars
   end
 end
