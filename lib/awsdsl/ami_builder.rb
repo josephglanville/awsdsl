@@ -47,6 +47,7 @@ module AWSDSL
       @builder.create_keypair
       @builder.create_instance
       @builder.install_chef
+      @builder.upload_cookbooks
     end
 
     def shutdown_builder
@@ -77,7 +78,7 @@ module AWSDSL
         i.name.start_with?("#{@stack.name}-#{role.name}")
       end
       latest_num = amis.map { |i| i.name.split('-').last.to_i }.sort.last
-      amis.select { |i| i.name == "#{ami}-#{env}-#{latest_num}" }.first
+      amis.select { |i| i.name == "#{@stack.name}-#{role.name}-#{latest_num}" }.first
     end
   end
 end

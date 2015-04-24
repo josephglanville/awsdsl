@@ -101,12 +101,14 @@ module AWSDSL
 
         # Policy
         statements = role.policy_statements.map { |s| format_policy_statement(s) }
-        policy_name = "#{role_name}Policy"
-        @t.declare do
-          Policy policy_name do
-            PolicyName policy_name
-            PolicyDocument Statement: statements
-            Roles [Ref("#{role_name}Role")]
+        if statements.count > 1
+          policy_name = "#{role_name}Policy"
+          @t.declare do
+            Policy policy_name do
+              PolicyName policy_name
+              PolicyDocument Statement: statements
+              Roles [Ref("#{role_name}Role")]
+            end
           end
         end
 
@@ -257,7 +259,7 @@ module AWSDSL
       stack.vpcs.each do |vpc|
         igw = vpc.igw || true
         dns = vpc.dns || true
-        cidr = vpc.cidr || '10.0.0.0/8'
+        cidr = vpc.cidr || '10.0.0.0/16'
         subnet_bits = vpc.subnet_bits || 24
         dns_hostnames = vpc.dns_hostnames || true
 
