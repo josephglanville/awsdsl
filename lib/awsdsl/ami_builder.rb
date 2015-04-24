@@ -30,8 +30,11 @@ module AWSDSL
 
     def build_ami(role)
       output_ami = ami_name(role)
+      # TODO(jpg): This needs to be better, also deep_merge
+      json = (@stack.vars || {}).merge(role.vars || {})
       @builder = Gersberms::Gersberms.new base_ami: base_ami(role),
-                                          ami_name: output_ami
+                                          ami_name: output_ami,
+                                          json: json
       begin
         start_builder
         role.file_provisioners.each do |provisioner|
