@@ -124,13 +124,16 @@ module AWSDSL
         update_policy = update_policy_defaults(role)
         lb_names = role.load_balancers.map { |lb| "#{role_name}#{lb.name.capitalize}ELB" }
         subnets = resolve_subnets(role.vpc, role.subnets)
+        min = role.min_size || 0
+        max = role.max_size || 1
+        tgt = role.tgt_size || 1
         @t.declare do
           AutoScalingGroup "#{role_name}ASG" do
             LaunchConfigurationName Ref("#{role.name.capitalize}LaunchConfig")
             UpdatePolicy 'AutoScalingRollingUpdate', update_policy if update_policy
-            MinSize role.min_size
-            MaxSize role.max_size
-            DesiredCapacity role.tgt_size
+            MinSize min
+            MaxSize max
+            DesiredCapacity tgt
             LoadBalancerNames lb_names.map { |name| Ref(name) }
             VPCZoneIdentifier subnets
             AvailabiltityZones FnGetAZs('')
