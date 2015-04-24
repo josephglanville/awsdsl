@@ -20,7 +20,8 @@ module AWSDSL
                :instance_type,
                :vpc,
                :base_ami,
-               :vars
+               :vars,
+               :key_pair
 
     def initialize(name, &block)
       @block = block if block_given?

@@ -20,6 +20,7 @@ module AWSDSL
                :instance_type,
                :vpc,
                :base_ami,
-               :vars
+               :vars,
+               :key_pair
   end
 end
