@@ -158,8 +158,7 @@ PLATFORMS
 
 DEPENDENCIES
   awsdsl!
-  bundler (~> 1.7)
   gersberms!
   pry
-  rake (~> 10.0)
-  rspec (~> 3.2)
+  rake
+  rspec
