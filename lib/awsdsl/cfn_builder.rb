@@ -36,7 +36,7 @@ module AWSDSL
 
         # Create ELBs and appropriate security groups etc.
         role.load_balancers.each do |lb|
-          listeners = lb.listeners.map { |l| listener_defaults(l) }
+          listeners = lb.listeners.map { |l| format_listener(l) }
           health_check = health_check_defaults(lb.health_check) if lb.health_check
 
           lb_name = "#{role_name}#{lb.name.capitalize}ELB"
@@ -122,7 +122,7 @@ module AWSDSL
 
         # Autoscaling Group
         update_policy = update_policy_defaults(role)
-        lb_names = role.load_balancers.map { |lb| "#{lb.name.capitalize}ELB" }
+        lb_names = role.load_balancers.map { |lb| "#{role_name}#{lb.name.capitalize}ELB" }
         subnets = resolve_subnets(role.vpc, role.subnets)
         @t.declare do
           AutoScalingGroup "#{role_name}ASG" do
@@ -154,6 +154,13 @@ module AWSDSL
           end
         end
 
+        lb_ingress_rules = role.load_balancers.map do |lb|
+          lb.listeners.map do |l|
+            h = listener_defaults(l)
+            h[:sg] = "#{role_name}#{lb.name.capitalize}ELBSG"
+            h
+          end
+        end.flatten
         # Security Group
         @t.declare do
           EC2_SecurityGroup "#{role_name}SG" do
@@ -164,6 +171,15 @@ module AWSDSL
                                  FromPort: 22,
                                  ToPort: 22,
                                  CidrIp: '0.0.0.0/0'
+
+            # Access from configured load_balancers
+            lb_ingress_rules.each do |rule|
+              SecurityGroupIngress IpProtocol: 'tcp',
+                                   FromPort: rule[:instance_port],
+                                   ToPort: rule[:instance_port],
+                                   SourceSecurityGroupId: Ref(rule[:sg])
+            end
+
             # Access from other roles
             # TODO(jpg): catch undefined roles before template generation
             role.allows.select { |r| r[:role] != role.name }.each do |rule|

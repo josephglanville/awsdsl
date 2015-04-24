@@ -9,6 +9,11 @@ module AWSDSL
       listener[:proto] ||= 'HTTP'
       listener[:instance_port] ||= listener[:port]
       listener[:loadbalancer_port] ||= listener[:port]
+      listener
+    end
+
+    def format_listener(listener)
+      listener = listener_defaults(listener)
       hash = {
         LoadBalancerPort: listener[:loadbalancer_port],
         InstancePort: listener[:instance_port],
