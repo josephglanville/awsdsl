@@ -1,0 +1,4 @@
+#!/usr/bin/env ruby
+require 'awsdsl/command_line'
+
+AWSDSL::CommandLine.run
