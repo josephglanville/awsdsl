@@ -2,9 +2,13 @@ AWS DSL
 ======
 
 This project is an opinionated take on running applications on AWS.
-It leverages CloudFormation and Gersberms to build your application into an Amazon Machine Image and deploy it on bare EC2 servers.
+It leverages [CloudFormation](http://aws.amazon.com/cloudformation/) and [Gersberms](https://github.com/josephglanville/gersberms) to build your application into an Amazon Machine Image and deploy it on bare EC2 servers.
 
 In a nutshell you declare your infrastructure in a Stackfile, which is a Ruby DSL that describes CloudFormation resources and AMI build instructions.
+
+It is in some ways analagous to OpsWorks however it's less intrusive and focuses on building immutable AMIs and replacing machines during updates rather than updating already running machines by re-running Chef.
+
+That said it you are already using OpsWorks it would be easy to get started using AWS DSL.
 
 Install
 -------
