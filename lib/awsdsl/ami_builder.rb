@@ -30,7 +30,7 @@ module AWSDSL
         role.chef_provisioners.each do |provisioner|
           runlist = provisioner[:runlist]
           runlist = [runlist] unless runlist.is_a? Array
-          @builder.options[:runlist] = provisioner[:runlist]
+          @builder.options[:runlist] = runlist
           @builder.run_chef
         end
         shutdown_builder
