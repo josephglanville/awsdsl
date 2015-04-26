@@ -209,3 +209,4 @@ TODO
 
 * cloud-init/cfn-init integration and environment variable system
 * build AMIs seperately
+* cfndsl section to allow arbitrary resource creation
