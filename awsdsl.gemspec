@@ -21,7 +21,7 @@ Gem::Specification.new do |spec|
   spec.add_runtime_dependency 'aws-sdk', '~> 1.0'
   spec.add_runtime_dependency 'activesupport', '~> 4'
   spec.add_runtime_dependency 'clamp', '~> 0.6'
-  spec.add_runtime_dependency 'cfndsl'
-  spec.add_runtime_dependency 'gersberms'
+  spec.add_runtime_dependency 'cfndsl', '~> 0.1'
+  spec.add_runtime_dependency 'gersberms', '~> 1.0'
   spec.add_runtime_dependency 'netaddr'
 end
