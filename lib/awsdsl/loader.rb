@@ -6,6 +6,7 @@ require 'awsdsl/dsl/load_balancer'
 require 'awsdsl/dsl/elasticache'
 require 'awsdsl/dsl/vpc'
 require 'awsdsl/dsl/subnet'
+require 'awsdsl/dsl/bucket'
 require 'awsdsl/fn'
 
 module AWSDSL

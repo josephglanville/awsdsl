@@ -23,6 +23,7 @@ module AWSDSL
       AWS.memoize do
         build_vpcs
         build_elasticaches
+        build_buckets
         build_roles
       end
       @t
@@ -352,6 +353,18 @@ module AWSDSL
                 end
               end
             end
+          end
+        end
+      end
+    end
+
+    def build_buckets
+      stack = @stack
+      stack.buckets.each do |bucket|
+        @t.declare do
+          Bucket "#{bucket.name.capitalize}Bucket" do
+            BucketName bucket.bucket_name if bucket.bucket_name
+            AccessControl bucket.access_control if bucket.access_control
           end
         end
       end

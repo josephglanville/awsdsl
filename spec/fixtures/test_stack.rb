@@ -97,4 +97,9 @@ stack 'logs' do
     node_type 't2.micro'
     allow role: 'logstash'
   end
+
+  bucket 'builds' do
+    bucket_name 'builds'
+    access_control 'Public'
+  end
 end
