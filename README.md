@@ -14,13 +14,23 @@ Install
 -------
 
 For now I recommending using Bundler to install and manage AWS DSL.
-Simply add this to your Gemfile
+Simply add this to your Gemfile to use the development version
 
 ```ruby
 gem 'awsdsl', git: 'https://github.com/josephglanville/awsdsl'
 ```
 
-I will publish the gem to RubyGems when I feel it's stabilized.
+Or the currently released version (not currently recommended)
+
+```ruby
+gem 'awsdsl', '~> 0.0.1'
+```
+
+However you can also install from RubyGems
+
+    $ gem install awsdsl
+
+When the gem is in-use in production I will push the version to 1.0 and follow Semver from there.
 
 Getting Started
 ---------------
