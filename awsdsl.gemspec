@@ -23,5 +23,5 @@ Gem::Specification.new do |spec|
   spec.add_runtime_dependency 'clamp', '~> 0.6'
   spec.add_runtime_dependency 'cfndsl', '~> 0.1'
   spec.add_runtime_dependency 'gersberms', '~> 1.0'
-  spec.add_runtime_dependency 'netaddr'
+  spec.add_runtime_dependency 'netaddr', '~> 1.5'
 end
