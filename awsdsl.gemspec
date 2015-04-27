@@ -18,10 +18,10 @@ Gem::Specification.new do |spec|
   spec.test_files    = spec.files.grep(%r{^(test|spec|features)/})
   spec.require_paths = ['lib']
 
-  spec.add_runtime_dependency 'aws-sdk', '~> 1.0'
-  spec.add_runtime_dependency 'activesupport', '~> 4'
-  spec.add_runtime_dependency 'clamp', '~> 0.6'
-  spec.add_runtime_dependency 'cfndsl', '~> 0.1'
-  spec.add_runtime_dependency 'gersberms', '~> 1.0'
-  spec.add_runtime_dependency 'netaddr', '~> 1.5'
+  spec.add_dependency 'aws-sdk', '~> 1.0'
+  spec.add_dependency 'activesupport', '~> 4'
+  spec.add_dependency 'clamp', '~> 0.6'
+  spec.add_dependency 'cfndsl', '~> 0.1'
+  spec.add_dependency 'gersberms', '~> 1.0'
+  spec.add_dependency 'netaddr', '~> 1.5'
 end
