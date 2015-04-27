@@ -67,6 +67,7 @@ stack 'logs' do
     instance_type 't2.micro'
     block_device name: '/dev/sda1', size: 20
     chef_provisioner runlist: 'elasticsearch'
+    tags Cluster: 'ESCluster'
     allow role: 'logstash', ports: 9200
     allow role: 'utility', ports: 9200
     allow role: 'elasticsearch', ports: 9200

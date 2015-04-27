@@ -21,6 +21,7 @@ module AWSDSL
                :vpc,
                :base_ami,
                :vars,
-               :key_pair
+               :key_pair,
+               :tags
   end
 end

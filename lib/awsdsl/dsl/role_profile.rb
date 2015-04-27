@@ -21,7 +21,8 @@ module AWSDSL
                :vpc,
                :base_ami,
                :vars,
-               :key_pair
+               :key_pair,
+               :tags
 
     def initialize(name, &block)
       @block = block if block_given?

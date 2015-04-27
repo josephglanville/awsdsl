@@ -1,7 +1,7 @@
 module AWSDSL
   class Stack
     include DSL
-    attributes :description, :vars
+    attributes :description, :vars, :tags
     sub_components :role, :role_profile, :elasticache, :vpc, :bucket
 
     def mixin_profiles

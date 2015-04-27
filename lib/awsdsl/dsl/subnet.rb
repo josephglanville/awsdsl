@@ -1,7 +1,7 @@
 module AWSDSL
   class Subnet
     include DSL
-    attributes :igw
+    attributes :igw, :tags
     multi_attributes :az
   end
 end
