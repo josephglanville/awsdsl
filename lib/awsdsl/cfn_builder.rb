@@ -153,6 +153,7 @@ module AWSDSL
         # Launch Configuration
         security_groups = resolve_security_groups(role.vpc, role.security_groups)
         block_devices = format_block_devices(role.block_devices)
+        vars = (stack.vars || {}).merge(role.vars || {})
         @t.declare do
           LaunchConfiguration "#{role_name}LaunchConfig" do
             ImageId role.ami
@@ -164,6 +165,9 @@ module AWSDSL
             IamInstanceProfile Ref("#{role_name}InstanceProfile")
             BlockDeviceMappings block_devices
             KeyName role.key_pair if role.key_pair
+            vars.each do |k,v|
+              Metadata k.to_s, v
+            end
           end
         end
 

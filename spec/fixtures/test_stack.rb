@@ -71,6 +71,7 @@ stack 'logs' do
     allow role: 'logstash', ports: 9200
     allow role: 'utility', ports: 9200
     allow role: 'elasticsearch', ports: 9200
+    vars Cluster: 'ESCluster'
   end
 
   role 'utility' do
