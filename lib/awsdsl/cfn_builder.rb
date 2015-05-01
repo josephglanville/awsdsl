@@ -165,6 +165,7 @@ module AWSDSL
         easy_install aws-cfn-bootstrap-latest
         /usr/local/bin/cfn-init --stack #{stack.name.capitalize} --resource #{role_name}LaunchConfig --region #{ENV['AWS_REGION']}
         EOF
+        cfn_init = role.init || {}
         @t.declare do
           LaunchConfiguration "#{role_name}LaunchConfig" do
             ImageId role.ami
@@ -180,7 +181,7 @@ module AWSDSL
               Metadata k.to_s, v
             end
             # TODO(jpg): Work out wtf to do with this and the DSL
-            Metadata 'AWS::CloudFormation::Init', { config: {} }
+            Metadata 'AWS::CloudFormation::Init', cfn_init
             UserData FnBase64(user_data)
           end
         end

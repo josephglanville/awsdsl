@@ -22,6 +22,7 @@ module AWSDSL
                :base_ami,
                :vars,
                :key_pair,
-               :tags
+               :tags,
+               :init
   end
 end

@@ -22,7 +22,8 @@ module AWSDSL
                :base_ami,
                :vars,
                :key_pair,
-               :tags
+               :tags,
+               :init
 
     def initialize(name, &block)
       @block = block if block_given?
