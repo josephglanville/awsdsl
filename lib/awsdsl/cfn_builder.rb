@@ -1,5 +1,6 @@
 require 'cfndsl'
 require 'netaddr'
+require 'awsdsl/ext/string'
 require 'awsdsl/cfn_helpers'
 
 module AWSDSL
@@ -154,6 +155,16 @@ module AWSDSL
         security_groups = resolve_security_groups(role.vpc, role.security_groups)
         block_devices = format_block_devices(role.block_devices)
         vars = (stack.vars || {}).merge(role.vars || {})
+        # TODO(jpg): Get region properly somehow
+        user_data = <<-EOF.unindent
+        #!/bin/bash -ex
+        apt-get update
+        apt-get -y install python-setuptools
+        mkdir aws-cfn-bootstrap-latest
+        curl https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-latest.tar.gz | tar xz -C aws-cfn-bootstrap-latest --strip-components 1
+        easy_install aws-cfn-bootstrap-latest
+        /usr/local/bin/cfn-init --stack #{stack.name.capitalize} --resource #{role_name}LaunchConfig --region #{ENV['AWS_REGION']}
+        EOF
         @t.declare do
           LaunchConfiguration "#{role_name}LaunchConfig" do
             ImageId role.ami
@@ -168,6 +179,9 @@ module AWSDSL
             vars.each do |k,v|
               Metadata k.to_s, v
             end
+            # TODO(jpg): Work out wtf to do with this and the DSL
+            Metadata 'AWS::CloudFormation::Init', { config: {} }
+            UserData FnBase64(user_data)
           end
         end
 
