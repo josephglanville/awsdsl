@@ -41,6 +41,7 @@ module AWSDSL
       hash[:MaxBatchSize] = update_policy[:max_batch] || 1
       hash[:MinInstancesInService] = update_policy[:min_inservice] || role.min_size
       hash[:PauseTime] = update_policy[:pause_time] if update_policy[:pause_time]
+      hash
     end
 
     def format_policy_statement(policy_statement)
